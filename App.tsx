@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import FloatingHearts from './components/FloatingHearts';
 import { AppState, Position, ValentineMessage } from './types';
@@ -8,7 +7,7 @@ declare var confetti: any;
 
 const App: React.FC = () => {
   const [status, setStatus] = useState<AppState>(AppState.ASking);
-  const [noPos, setNoPos] = useState<Position>({ x: 0, y: 0 });
+  const [noPos, setNoPos] = useState<Position | null>(null);
   const [noScale, setNoScale] = useState(1);
   const [yesScale, setYesScale] = useState(1);
   const [message, setMessage] = useState<ValentineMessage | null>(null);
@@ -16,12 +15,12 @@ const App: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
   
   const containerRef = useRef<HTMLDivElement>(null);
-  const noButtonRef = useRef<HTMLButtonElement>(null);
 
   const funnyNoPhrases = [
     "No", "Are you sure?", "Really?", "Think again!", "Last chance!", 
     "Surely not?", "You're breaking my heart!", "Please?", "I'll be sad!", 
-    "Wait, look over there!", "I'll give you a cookie!", "Pretty please?"
+    "Wait, look over there!", "I'll give you a cookie!", "Pretty please?",
+    "You can't catch me!", "Still trying?", "Maybe click Yes instead?"
   ];
 
   useEffect(() => {
@@ -31,7 +30,7 @@ const App: React.FC = () => {
   const triggerConfetti = () => {
     const duration = 5 * 1000;
     const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
 
     const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
 
@@ -55,30 +54,30 @@ const App: React.FC = () => {
       const msg = await generateRomanticMessage();
       setMessage(msg);
     } catch (e) {
-      console.error(e);
+      console.error("Failed to generate sweet message:", e);
     }
     setStatus(AppState.ACCEPTED);
   };
 
-  const moveNoButton = useCallback(() => {
+  const moveNoButton = useCallback((e?: React.MouseEvent | React.TouchEvent) => {
     if (status !== AppState.ASking) return;
     
+    // Prevent default to stop actual clicks or scrolling on mobile
+    if (e) e.preventDefault();
+
     setNoCount(prev => prev + 1);
     
-    // Make the Yes button bigger and No button smaller each time she tries to click No
-    setYesScale(prev => Math.min(prev + 0.15, 3));
-    setNoScale(prev => Math.max(prev - 0.05, 0.3));
+    // Make the Yes button bigger and No button slightly smaller/harder
+    setYesScale(prev => Math.min(prev + 0.2, 5));
+    setNoScale(prev => Math.max(prev - 0.05, 0.4));
 
-    const container = containerRef.current;
-    if (!container) return;
+    // Calculate random position in the whole viewport
+    const btnWidth = 120;
+    const btnHeight = 60;
+    const x = Math.max(20, Math.random() * (window.innerWidth - btnWidth - 20));
+    const y = Math.max(20, Math.random() * (window.innerHeight - btnHeight - 20));
 
-    const rect = container.getBoundingClientRect();
-    
-    // Random position within container bounds
-    const newX = Math.random() * (rect.width - 150) - (rect.width / 2) + 75;
-    const newY = Math.random() * (rect.height - 100) - (rect.height / 2) + 50;
-
-    setNoPos({ x: newX, y: newY });
+    setNoPos({ x, y });
   }, [status]);
 
   const downloadResponse = () => {
@@ -88,29 +87,19 @@ const App: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Background
     ctx.fillStyle = '#fff5f7';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Border
     ctx.strokeStyle = '#f472b6';
     ctx.lineWidth = 15;
     ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
 
-    // Text Settings
     ctx.textAlign = 'center';
     ctx.fillStyle = '#9d174d';
-
-    // Title
     ctx.font = 'bold 60px serif';
     ctx.fillText('OFFICIAL RESPONSE', canvas.width / 2, 150);
-
-    // Heart
     ctx.font = '100px serif';
     ctx.fillText('❤️', canvas.width / 2, 280);
-
-    // Content
-    ctx.font = 'italic 45px serif';
+    ctx.font = 'italic 50px serif';
     ctx.fillText('She Said YES!', canvas.width / 2, 400);
 
     ctx.font = '30px serif';
@@ -131,58 +120,64 @@ const App: React.FC = () => {
     }
 
     ctx.font = '20px serif';
-    ctx.fillText(`Signed on: ${new Date().toLocaleDateString()}`, canvas.width / 2, 920);
+    ctx.fillText(`Date: ${new Date().toLocaleDateString()}`, canvas.width / 2, 920);
 
-    // Download
     const link = document.createElement('a');
-    link.download = 'Our-Valentine-Certificate.png';
+    link.download = 'My-Valentine-Response.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-pink-100 to-red-50">
+    <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-pink-100 to-red-50">
       <FloatingHearts />
       
       <div 
         ref={containerRef}
-        className="z-10 bg-white/80 backdrop-blur-md p-8 md:p-12 rounded-3xl shadow-2xl border-4 border-pink-200 max-w-lg w-full text-center transform transition-all hover:scale-[1.01]"
+        className="z-10 bg-white/90 backdrop-blur-lg p-10 md:p-14 rounded-3xl shadow-2xl border-4 border-white max-w-lg w-full text-center transition-all duration-500"
       >
         {status === AppState.ASking && (
-          <div className="space-y-8 animate-in fade-in zoom-in duration-700">
-            <div className="relative inline-block mb-4">
+          <div className="space-y-10 animate-in fade-in zoom-in duration-1000">
+            <div className="relative inline-block mb-2 scale-110">
               <img 
-                src="https://picsum.photos/seed/valentine-cat/300/200" 
-                alt="Cute gesture" 
-                className="rounded-2xl border-4 border-pink-100 shadow-lg mx-auto"
+                src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHpueW9uaTh6eXdzem04bWJzZnV1bWF4MmJ4enJidjZndHp2enp4ZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/MDJ9IbxxvDUQM/giphy.gif" 
+                alt="Cute Cat" 
+                className="rounded-2xl border-4 border-pink-200 shadow-xl mx-auto w-48 h-48 object-cover"
               />
-              <div className="absolute -top-4 -right-4 text-4xl animate-bounce">💝</div>
+              <div className="absolute -top-6 -left-6 text-5xl animate-pulse">🧸</div>
+              <div className="absolute -bottom-6 -right-6 text-5xl animate-bounce">💌</div>
             </div>
             
             <h1 className="text-4xl md:text-5xl font-handwritten font-bold text-pink-700 leading-tight">
               Do you want to be my <br/>
-              <span className="text-red-500 text-5xl md:text-6xl font-accent">Valentine?</span>
+              <span className="text-red-500 text-6xl md:text-7xl font-accent block mt-4">Valentine?</span>
             </h1>
 
-            <div className="flex flex-col md:flex-row items-center justify-center gap-6 relative min-h-[120px]">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-8 relative h-32">
               <button
                 onClick={handleYes}
-                style={{ transform: `scale(${yesScale})` }}
-                className="bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-all active:scale-95 z-20"
+                style={{ transform: `scale(${yesScale})`, transition: 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}
+                className="bg-red-500 hover:bg-red-600 text-white font-black py-5 px-14 rounded-full shadow-2xl transition-all active:scale-90 z-20 text-xl"
               >
-                YES!
+                YES
               </button>
 
               <button
-                ref={noButtonRef}
                 onMouseEnter={!isMobile ? moveNoButton : undefined}
                 onTouchStart={isMobile ? moveNoButton : undefined}
                 onClick={moveNoButton}
-                style={{ 
-                  transform: `translate(${noPos.x}px, ${noPos.y}px) scale(${noScale})`,
-                  transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                style={noPos ? {
+                  position: 'fixed',
+                  left: `${noPos.x}px`,
+                  top: `${noPos.y}px`,
+                  transform: `scale(${noScale})`,
+                  zIndex: 100,
+                  transition: 'all 0.15s ease-out'
+                } : {
+                  transform: `scale(${noScale})`,
+                  transition: 'all 0.3s ease-out'
                 }}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-4 px-10 rounded-full shadow transition-all whitespace-nowrap"
+                className="bg-gray-100 hover:bg-gray-200 text-gray-400 font-bold py-4 px-10 rounded-full shadow-md whitespace-nowrap border-2 border-gray-200"
               >
                 {funnyNoPhrases[Math.min(noCount, funnyNoPhrases.length - 1)]}
               </button>
@@ -191,52 +186,49 @@ const App: React.FC = () => {
         )}
 
         {status === AppState.GENERATING_RESPONSE && (
-          <div className="space-y-6 py-10 animate-pulse">
-            <div className="text-6xl">💖</div>
-            <h2 className="text-2xl font-bold text-pink-600">Preparing something special...</h2>
+          <div className="space-y-8 py-20">
+            <div className="text-8xl animate-spin">🍭</div>
+            <h2 className="text-3xl font-handwritten font-bold text-pink-600">Making it official...</h2>
           </div>
         )}
 
         {status === AppState.ACCEPTED && (
-          <div className="space-y-8 animate-in slide-in-from-bottom duration-700">
-            <div className="text-8xl animate-bounce mb-4">🥰</div>
-            <h1 className="text-5xl md:text-6xl font-accent text-red-500">Yay!</h1>
+          <div className="space-y-10 animate-in slide-in-from-bottom duration-1000">
+            <div className="text-9xl animate-bounce mb-6">💖</div>
+            <h1 className="text-6xl md:text-8xl font-accent text-red-500">Yay!</h1>
+            <p className="text-2xl font-handwritten text-pink-700">I knew you'd say yes! 🥰</p>
             
             {message && (
-              <div className="bg-pink-50/50 p-6 rounded-2xl border border-pink-100 text-left space-y-4 shadow-inner">
-                <p className="text-pink-800 font-semibold italic text-lg">"{message.reason}"</p>
-                <div className="h-px bg-pink-200 w-full"></div>
-                <p className="text-pink-600 font-handwritten text-xl whitespace-pre-line leading-relaxed">
+              <div className="bg-white p-8 rounded-3xl border-2 border-pink-100 text-left space-y-5 shadow-lg transform -rotate-1">
+                <p className="text-pink-800 font-bold italic text-xl">"{message.reason}"</p>
+                <div className="h-0.5 bg-gradient-to-r from-transparent via-pink-200 to-transparent w-full"></div>
+                <p className="text-pink-600 font-handwritten text-2xl whitespace-pre-line leading-relaxed text-center">
                   {message.poem}
                 </p>
               </div>
             )}
 
-            <div className="pt-4 space-y-4">
-              <p className="text-pink-700 text-sm">Download your response to send to me!</p>
+            <div className="pt-6 space-y-6">
               <button
                 onClick={downloadResponse}
-                className="w-full bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-bold py-4 px-8 rounded-2xl shadow-xl transform transition-all active:scale-95 flex items-center justify-center gap-2 group"
+                className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-black py-5 px-8 rounded-2xl shadow-2xl transform transition-all active:scale-95 flex items-center justify-center gap-3 text-xl group"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 group-hover:animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Download My Response
+                <span className="group-hover:animate-bounce">💾</span>
+                Download Response
               </button>
               
-              <button 
-                onClick={() => window.location.reload()}
-                className="text-pink-400 hover:text-pink-600 text-xs transition-colors"
-              >
-                Ask me again?
-              </button>
+              <p className="text-pink-400 text-sm italic">Save this and send it back to me! 💌</p>
             </div>
           </div>
         )}
       </div>
 
-      <footer className="fixed bottom-4 text-pink-300 text-xs pointer-events-none">
-        Made with ❤️ for someone special
+      <div className="fixed top-10 left-10 text-4xl opacity-30 select-none">🎈</div>
+      <div className="fixed top-20 right-20 text-4xl opacity-30 select-none">🎀</div>
+      <div className="fixed bottom-20 left-1/4 text-4xl opacity-30 select-none">🥂</div>
+      
+      <footer className="fixed bottom-6 w-full text-center text-pink-200 text-xs font-semibold tracking-widest uppercase pointer-events-none">
+        Forever & Always
       </footer>
     </div>
   );
