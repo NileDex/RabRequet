@@ -1,16 +1,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 export const generateRomanticMessage = async (): Promise<{ reason: string; poem: string }> => {
-  const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : '';
-  
-  if (!apiKey) {
-    return {
-      reason: "You make every day feel like a dream come true.",
-      poem: "Roses are red, violets are blue,\nLife is a gift when I am with you.\nNo matter where our journey may go,\nMy love for you will always grow."
-    };
-  }
-
-  const ai = new GoogleGenAI({ apiKey });
+  // Always initialize GoogleGenAI with the API key from process.env.API_KEY directly as per guidelines
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   try {
     const response = await ai.models.generateContent({
@@ -29,10 +21,12 @@ export const generateRomanticMessage = async (): Promise<{ reason: string; poem:
       }
     });
 
+    // Directly access the .text property of the response object
     const resultText = response.text || '';
     return JSON.parse(resultText.trim());
   } catch (e) {
     console.error("Gemini error:", e);
+    // Return backup content if API call fails
     return {
       reason: "You are the sweetest person in my universe.",
       poem: "The stars shine bright, the moon is clear,\nBut nothing compares to when you are near.\nBe my Valentine, now and forever,\nThere is no one else I'd rather be with, ever."
