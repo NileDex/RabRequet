@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;600&family=Pacifico&display=swap" rel="stylesheet">
     <style>
@@ -11,6 +11,7 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
+            touch-action: manipulation;
         }
         .font-handwritten {
             font-family: 'Dancing Script', cursive;
@@ -25,6 +26,10 @@
         }
         .floating {
             animation: float 3s ease-in-out infinite;
+        }
+        /* Custom styles for the runaway button transition */
+        .runaway-transition {
+            transition: all 0.15s cubic-bezier(0.2, 1, 0.3, 1);
         }
     </style>
     <script type="importmap">
