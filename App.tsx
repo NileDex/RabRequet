@@ -21,7 +21,7 @@ const App: React.FC = () => {
   const funnyNoPhrases = [
     "No", "Are you sure?", "Really?", "Think again!", "Last chance!", 
     "Surely not?", "You're breaking my heart!", "Please?", "I'll be sad!", 
-    "Wait, look over there! (still no)", "I'll give you a cookie!", "Pretty please?"
+    "Wait, look over there!", "I'll give you a cookie!", "Pretty please?"
   ];
 
   useEffect(() => {
@@ -73,7 +73,6 @@ const App: React.FC = () => {
     if (!container) return;
 
     const rect = container.getBoundingClientRect();
-    const padding = 60;
     
     // Random position within container bounds
     const newX = Math.random() * (rect.width - 150) - (rect.width / 2) + 75;
@@ -161,7 +160,7 @@ const App: React.FC = () => {
             </div>
             
             <h1 className="text-4xl md:text-5xl font-handwritten font-bold text-pink-700 leading-tight">
-              Will you be my <br/>
+              Do you want to be my <br/>
               <span className="text-red-500 text-5xl md:text-6xl font-accent">Valentine?</span>
             </h1>
 
@@ -201,7 +200,7 @@ const App: React.FC = () => {
         {status === AppState.ACCEPTED && (
           <div className="space-y-8 animate-in slide-in-from-bottom duration-700">
             <div className="text-8xl animate-bounce mb-4">🥰</div>
-            <h1 className="text-5xl md:text-6xl font-accent text-red-500">Yay! Best day ever!</h1>
+            <h1 className="text-5xl md:text-6xl font-accent text-red-500">Yay!</h1>
             
             {message && (
               <div className="bg-pink-50/50 p-6 rounded-2xl border border-pink-100 text-left space-y-4 shadow-inner">
@@ -214,7 +213,7 @@ const App: React.FC = () => {
             )}
 
             <div className="pt-4 space-y-4">
-              <p className="text-pink-700 text-sm">Download our certificate to seal the deal!</p>
+              <p className="text-pink-700 text-sm">Download your response to send to me!</p>
               <button
                 onClick={downloadResponse}
                 className="w-full bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-bold py-4 px-8 rounded-2xl shadow-xl transform transition-all active:scale-95 flex items-center justify-center gap-2 group"
